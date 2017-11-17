@@ -1,0 +1,32 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "LambCI build servers running on ECS",
+  "Resources": {
+    "EcsLogs": {
+      "Type": "AWS::Logs::LogGroup"
+    },
+    "BuildTask": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [{
+          "Name": "build",
+          "Image": "lambci/ecs",
+          "Memory": 450,
+          "LogConfiguration": {
+            "LogDriver": "awslogs",
+            "Options": {
+              "awslogs-group": {"Ref": "EcsLogs"},
+              "awslogs-region": {"Ref": "AWS::Region"}
+            }
+          },
+          "Environment": [
+            {"Name": "LOG_GROUP", "Value": {"Ref": "EcsLogs"}},
+            {"Name": "AWS_REGION", "Value": {"Ref": "AWS::Region"}}
+           ],
+          "MountPoints": [{"SourceVolume": "docker-socket", "ContainerPath": "/var/run/docker.sock"}]
+        }],
+        "Volumes": [{"Name": "docker-socket", "Host": {"SourcePath": "/var/run/docker.sock"}}]
+      }
+    }
+  }
+}
